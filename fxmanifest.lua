@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 
 author 'Wellerson Carvalho'
-description 'Recurso para sincronizar efeitos e som entre jogadores próximos'
+description 'Script de transformacao'
 version '1.0.0'
 
 -- Página NUI para tocar sons
