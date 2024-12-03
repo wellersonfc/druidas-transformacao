@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audios custom</title>
+</head>
+<body>
+    <!-- Elemento de áudio invisível -->
+    <audio id="audio-player" class="hidden" src="som_teste.ogg"></audio>
+
+    <script>
+        // JS: Manipulação do evento NUI
+        window.addEventListener("message", (event) => {
+            if (event.data.action === "playSound") {
+                const audio = document.getElementById("audio-player");
+                audio.volume = event.data.volume || 1.0; // Define o volume (default 1.0)
+                audio.currentTime = 0; // Reinicia o áudio para tocar do começo
+                audio.play();
+            }
+        });
+    </script>
+</body>
+</html>
