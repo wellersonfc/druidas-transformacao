@@ -2,7 +2,7 @@
 
 
 ## **Descrição**
-Este script permite aos jogadores se transformarem em diferentes animais no jogo. Ele também inclui um sistema de buffs únicos para cada transformação e efeitos visuais durante o processo. É ideal para servidores de roleplay que desejam adicionar uma camada extra de imersão e diversão.
+Este script permite aos jogadores se transformarem em diferentes animais no jogo de forma magica. Ele também inclui um sistema de buffs únicos para cada transformação e efeitos visuais durante o processo. É ideal para servidores de roleplay que desejam adicionar uma camada extra de imersão e diversão.
 
 ---
 
