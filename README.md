@@ -35,8 +35,8 @@ Este script permite aos jogadores se transformarem em diferentes animais no jogo
 
 ## **Desenvolvimento**
 
-- **Desenvolvedor:** *Seu Nome ou Nome do Grupo*  
-- **Contato:** *Seu email ou outra forma de contato*  
+- **Desenvolvedor:** *Wellerson de Carvalho*  
+- **Contato:** *wellersonfc@gmail.com*  
 - **Versão:** 1.0.0  
 
 ---
