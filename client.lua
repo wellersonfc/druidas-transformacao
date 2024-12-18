@@ -6,12 +6,11 @@ local originalAttributes = {
     speed = nil, -- Armazena a velocidade original
 }
 
-local currentAnimal = nil  -- Armazena o animal atual
+local currentAnimal = false  -- Armazena o animal atual
 local currentPlayer = nil  -- Armazena o player atual (quem executou a transformação)
 
 local animals = {
-    {name = "Cachorro P", model = "a_c_poodle"},
-    {name = "Cachorro W", model = "a_c_westy"},
+    {name = "Cachorro", model = "a_c_westy"},
     {name = "Gato", model = "a_c_cat_01"},
     {name = "Veado", model = "a_c_deer"},
     {name = "Porco", model = "a_c_pig"},
@@ -19,8 +18,8 @@ local animals = {
     {name = "Galinha", model = "a_c_hen"},
     {name = "Vaca", model = "a_c_cow"},
     {name = "Coelho", model = "a_c_rabbit_01"},
-    {name = "Coiote", model = "a_c_coyote"},
-    {name = "Puma", model = "A_C_MtLion_02"}
+    {name = "Puma", model = "A_C_MtLion_02"},
+    {name = "Javali", model = "A_C_Boar"}
 }
 local efeitos = {
     {effect = "ent_sht_telegraph_pole", scale = 1.5, speed = 0.00, direction = "parado"},
@@ -33,16 +32,39 @@ local efeitos = {
 
 local isEffectActive = false
 local activeEffectHandles = {}
+local isVisionActive = false 
 
 -- Função para obter o modelo base do jogador
 function GetBasePlayerSkin(playerId)
     return GetEntityModel(GetPlayerPed(playerId))
 end
 
--- Comando para ativar a transformação
-RegisterCommand("transform", function()
+RegisterCommand("transform", function(_, args)
     currentPlayer = PlayerId()  -- Marca o jogador que executou o comando
-    ShowAnimalMenu()  -- Chama o menu de transformação
+    local animalName = args[1]  -- Obtém o argumento fornecido após o comando
+
+    if animalName then
+        -- Converte o nome do animal para maiúsculas para evitar problemas de comparação
+        local animalNameLower = string.lower(animalName)
+
+        -- Procura o modelo correspondente ao nome do animal fornecido
+        for _, animal in ipairs(animals) do
+            if string.lower(animal.name) == animalNameLower then
+                if not currentAnimal then
+                    TransformIntoAnimal(animal.model)  -- Transforma diretamente no animal
+                else
+                    TriggerEvent('chat:addMessage', { args = { "[Erro]", "Você já está transformado! Primeiro cancele a transformação." } })
+                end
+                return
+            end
+        end
+
+        -- Caso o animal não seja encontrado, exibe uma mensagem de erro
+        TriggerEvent('chat:addMessage', { args = { "[Erro]", "Animal não encontrado. Use /transform para abrir o menu." } })
+    else
+        -- Sem argumento, exibe o menu de transformação
+        ShowAnimalMenu()
+    end
 end)
 
 -- Função para mostrar o menu de transformação
@@ -143,6 +165,12 @@ function TransformIntoAnimal(model)
     -- Inicia o efeito visual
     local playerCoords = GetEntityCoords(PlayerPedId()) 
     TriggerServerEvent("syncEffectsAndSoundForPlayer", playerCoords)
+
+    -- Verifica o modelo do jogador transformado
+    local currentModel = GetEntityModel(playerPed)
+    if currentModel == GetHashKey("a_c_rat") or currentModel == GetHashKey("a_c_deer") or currentModel == GetHashKey("A_C_MtLion_02") then
+        correrMaisRapido() -- Inicia o aumento de velocidade enquanto transformado
+    end
 end
 
 -- Função para reverter à forma humana
@@ -160,33 +188,42 @@ function RevertToHuman()
     SetPlayerStamina(playerPed, originalAttributes.stamina)
     SetPedArmour(playerPed, originalAttributes.armor)
     SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)
+    
+    -- Para o aumento de velocidade
+    SetPedMoveRateOverride(playerPed, 1.0)  -- Retorna a velocidade normal
+
     currentAnimal = nil
     currentPlayer = nil
 end
 
 function ApplyAnimalBuffs(playerPed)
-    local healthBonus, armorBonus, speedBonus, staminaMultiplier = 4.0, 100, 1.49, 50.0
     local player = PlayerId()
-
+    
     -- Buffs iniciais
+    local healthBonus, armorBonus, speedBonus = 4.0, 100, 1.49
+    local staminaMultiplier, weaponDamageReduction = 50.0, 0.5
+    local meleeDamageReduction = 0.5 -- Redução de dano de socos
+
     SetEntityHealth(playerPed, GetEntityMaxHealth(playerPed) * healthBonus)
     SetPedArmour(playerPed, armorBonus)
 
-    -- Aplicação contínua do buff de velocidade e estamina
+    -- Aplique os buffs de forma eficiente
     Citizen.CreateThread(function()
         while currentAnimal do
-            -- Garante que o buff de velocidade permaneça ativo
+            -- Aplica buffs, caso ainda não aplicados
             SetRunSprintMultiplierForPlayer(player, speedBonus)
-
-            -- Restaura estamina continuamente
             RestorePlayerStamina(player, staminaMultiplier)
+            SetPlayerWeaponDamageModifier(player, weaponDamageReduction)
+            SetEntityProofs(playerPed, false, true, false, false, false, false, false, false)
 
-            -- Espera antes de reaplicar os buffs
+            -- Aguarda antes de reaplicar
             Citizen.Wait(500)
         end
 
-        -- Restaura o multiplicador de velocidade ao padrão
+        -- Restaura valores padrão quando o buff termina
         SetRunSprintMultiplierForPlayer(player, 1.0)
+        SetPlayerWeaponDamageModifier(player, 1.0)
+        SetEntityProofs(playerPed, false, false, false, false, false, false, false, false)
     end)
 end
 
@@ -279,3 +316,109 @@ AddEventHandler("syncEffectsAndSoundForAll", function(playerCoords)
         end
     end)
 end)
+
+-- Rastreamento enquanto transformado --
+local trackingEnabled, trackingCooldown, activeBlips = false, 0, {}
+local cooldownTime, trackingDuration = 5 * 60 * 1000, 60 * 1000
+
+RegisterCommand("rastrear", function()
+    if not currentAnimal then 
+        TriggerEvent('chat:addMessage', { args = { "[Erro]", "Você precisa estar transformado para rastrear." } })
+        return
+    end
+
+    -- Verifica o tempo de recarga em milissegundos
+    if trackingCooldown > 0 then
+        local remainingTime = math.floor((trackingCooldown - GetGameTimer()) / 1000)  -- Calculando o tempo restante em segundos
+        if remainingTime > 0 then
+            TriggerEvent('chat:addMessage', { args = { "[Rastreamento]", "Em recarga. Tempo restante: " .. remainingTime .. "s." } })
+            return
+        end
+    end
+
+    trackingEnabled = not trackingEnabled
+    TriggerEvent('chat:addMessage', { args = { "[Rastreamento]", trackingEnabled and "Ativado." or "Desativado." } })
+
+    if trackingEnabled then
+        StartTracking()
+        SetCooldown()
+    else
+        StopTracking()
+    end
+end)
+
+function StartTracking()
+    Citizen.CreateThread(function()
+        local startTime = GetGameTimer()
+        while trackingEnabled do
+            if GetGameTimer() - startTime > trackingDuration then
+                trackingEnabled = false
+                StopTracking()
+                TriggerEvent('chat:addMessage', { args = { "[Rastreamento]", "Desativado automaticamente." } })
+                break
+            end
+
+            local playerCoords = GetEntityCoords(PlayerPedId())
+            for _, playerId in ipairs(GetActivePlayers()) do
+                local targetPed = GetPlayerPed(playerId)
+                if Vdist(playerCoords, GetEntityCoords(targetPed)) <= 50.0 then
+                    CreateBlip(targetPed, "player")
+                end
+            end
+
+            for _, npcPed in ipairs(GetNearbyPeds(PlayerPedId(), 50.0)) do
+                if npcPed ~= PlayerPedId() then
+                    CreateBlip(npcPed, "npc")
+                end
+            end
+
+            Citizen.Wait(5000)
+        end
+    end)
+end
+
+function GetNearbyPeds(playerPed, radius)
+    local peds = {}
+    for _, ped in ipairs(GetGamePool('CPed')) do
+        if Vdist(GetEntityCoords(playerPed), GetEntityCoords(ped)) <= radius then
+            table.insert(peds, ped)
+        end
+    end
+    return peds
+end
+
+function CreateBlip(entity, entityType)
+    if not BlipExistsForEntity(entity) then
+        local blip = AddBlipForEntity(entity)
+        SetBlipSprite(blip, 1)
+        SetBlipColour(blip, entityType == "player" and 1 or 45)
+        SetBlipScale(blip, 0.8)
+        SetBlipAsShortRange(blip, false)
+        table.insert(activeBlips, blip)
+    end
+end
+
+function BlipExistsForEntity(entity)
+    for _, blip in ipairs(activeBlips) do
+        if GetBlipFromEntity(blip) == entity then return true end
+    end
+    return false
+end
+
+function StopTracking()
+    for _, blip in ipairs(activeBlips) do
+        RemoveBlip(blip)
+    end
+    activeBlips = {}
+end
+
+function SetCooldown()
+    trackingCooldown = GetGameTimer() + cooldownTime  -- Define o tempo de recarga em milissegundos
+end
+
+function correrMaisRapido()
+    while currentAnimal do
+        Wait(0)
+        SetPedMoveRateOverride(PlayerPedId(), 2.50)  -- Aumenta a velocidade de movimento
+    end
+end

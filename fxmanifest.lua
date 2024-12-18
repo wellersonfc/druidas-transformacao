@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'Wellerson Carvalho'
 description 'Script de transformacao'
-version '1.0.0'
+version '1.0.2'
 
 -- Página NUI para tocar sons
 ui_page 'html/index.html'
@@ -16,7 +16,7 @@ files {
 
 -- Scripts cliente
 client_scripts {
-    'client.lua'    -- Lógica do cliente
+    'client.lua'   -- Lógica do cliente
 }
 
 -- Scripts servidor

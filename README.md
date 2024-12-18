@@ -37,16 +37,15 @@ Este script permite aos jogadores se transformarem em diferentes animais no jogo
 
 - **Desenvolvedor:** *Wellerson de Carvalho*  
 - **Contato:** *wellersonfc@gmail.com*  
-- **Versão:** 1.0.0  
+- **Versão:** 1.0.2  
 
 ---
 
 ## **Futuras Melhorias e Ajustes**
 
-- Adicionar mais animais com buffs personalizados.
-- Incluir restrições de áreas ou permissões para transformar.
+- Adicionar mais animais com buffs personalizados - att 18/12/2024.
+- Incluir restrições por permissões para transformar.
 - Melhorar a sincronização dos efeitos em servidores com muitos jogadores.
-- Suporte a traduções para diferentes idiomas.
 - Implementar animações específicas para cada transformação.
 
 ---
@@ -60,4 +59,7 @@ Se você deseja contribuir ou tem sugestões para melhorias, sinta-se à vontade
 ### **Notas**
 Certifique-se de testar o script em diferentes configurações de servidor antes de aplicá-lo em produção.
 
+### **Mecânica  de Rastrear**
+- A mecânica de rastrear, disponível enquanto transformado, oferece uma experiência imersiva e dinâmica no RP, permitindo que jogadores localizem outros NPCs ou jogadores em um raio específico. Ela pode ser usada de maneira estratégica, seja para caçar, proteger aliados ou explorar o ambiente, adicionando uma camada de diversão e interação ao jogo. Além disso, o tempo de recarga cria um equilíbrio, incentivando o uso tático e aumentando a intensidade das situações de rastreamento.
+- Bonus de Speed para puma, rato e cervo.
 ---
