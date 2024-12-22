@@ -44,8 +44,17 @@ RegisterCommand("transform", function(_, args)
     local animalName = args[1]  -- Obtém o argumento fornecido após o comando
 
     if animalName then
-        -- Converte o nome do animal para maiúsculas para evitar problemas de comparação
+        -- Converte o argumento para minúsculas para facilitar a comparação
         local animalNameLower = string.lower(animalName)
+
+        if animalNameLower == "hum" then
+            if currentAnimal then
+                RevertToHuman()  -- Voltar à forma humana
+            else
+                TriggerEvent('chat:addMessage', { args = { "[Erro]", "Você já está na forma humana!" } })
+            end
+            return
+        end
 
         -- Procura o modelo correspondente ao nome do animal fornecido
         for _, animal in ipairs(animals) do

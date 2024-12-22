@@ -22,6 +22,8 @@ Este script permite aos jogadores se transformarem em diferentes animais no jogo
    - Use o comando `/transform` para abrir o menu de transformação. Escolha o animal ou a opção de retornar à forma humana..
    - Use o comando `/transform Puma` {Cachorro / Gato / Veado / Javali/ Porco / Puma / Rato / Galinha / Vaca} tambem pode se transforma no animal que deseja.
    - Use o comando `/rastrear` para utilizar a habilidade de detecção animal.
+   - Use o comando `/transform hum` para voltar a forma humana.
+
    
 2. **Customização:** 
    - Edite as tabelas `animals` e `efeitos` para adicionar mais opções de animais ou personalizar os efeitos visuais.
